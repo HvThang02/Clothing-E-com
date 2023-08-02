@@ -8,26 +8,26 @@ import {
   Dimensions,
   TextInput,
   Alert,
-  ActivityIndicator,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { getData, storeData } from "../../features/MyA";
+import { getData } from "../../features/MyA";
 import { apiApp, apiKey } from "../../features/ApiKey";
 
 const { width, height } = Dimensions.get("screen");
 
-const EditProfile = () => {
+const Setting = () => {
+  const [showpassword, setshowpassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] =
     useState(false);
+  const [showLockConfirmation, setShowLockConfirmation] = useState(false);
+  const [lockConfirmationPassword, setLockConfirmationPassword] = useState("");
   const navigate = useNavigation();
   const [userProfile, setUserProfile] = useState(null);
-  const [newfullname, setNewfullname] = useState("");
-  const [newAddress, setNewAddress] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newConfirmPassword, setConfrimPassWord] = useState("");
   const [id, setId] = useState("");
   const [confirmationPassword, setConfirmationPassword] = useState("");
-  const [Loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const inUserID = async () => {
     try {
@@ -40,7 +40,6 @@ const EditProfile = () => {
   };
 
   useEffect(() => {
-    setLoading(true);
     inUserID()
       .then((id) => {
         setId(id);
@@ -57,14 +56,11 @@ const EditProfile = () => {
           .then((response) => response.json())
           .then((data) => {
             setUserProfile({
-              name: data.name,
-              address: data.address,
               password: data.password,
               confirmpassword: data.confirmpassword,
             });
-            setNewfullname(data.name);
-            setNewAddress(data.address);
-            setLoading(false);
+            setNewPassword(data.password);
+            setConfrimPassWord(data.confirmpassword);
           })
           .catch((error) => {
             console.error("Error:", error);
@@ -74,49 +70,29 @@ const EditProfile = () => {
   }, []);
 
   const handleUpdate = () => {
-    if (!newfullname) {
-      Alert.alert("Lỗi", "Vui lòng không để trống tên của bạn");
-      return;
-    } else if (!newAddress) {
-      Alert.alert("Lỗi", "Vui lòng không để trống địa chỉ ");
-      return;
-    } else if (newAddress.length < 8 || newAddress.length > 50) {
+    if (newPassword?.length < 6 || newPassword?.length > 16) {
       Alert.alert(
         "Lỗi",
-        "Địa chỉ của bạn phải có ít nhất từ 8 ký tự và tối đa 50 ký tự."
+        "Mật khẩu mới của bạn phải có ít nhất 6 ký tự và tối đa là 16 ký tự."
       );
       return;
-    } else if (newAddress.trim().length === 0) {
-      Alert.alert("Lỗi", "Vui lòng nhập địa chỉ đầy đủ");
+    } else if (
+      newPassword?.includes(" ") ||
+      newConfirmPassword?.includes(" ")
+    ) {
+      Alert.alert("Lỗi", "Vui lòng không nhập space");
       return;
-    } else if (newfullname.length < 10 || newfullname.length > 30) {
-      Alert.alert(
-        "Lỗi",
-        "Tên của bạn phải có ít nhất từ 10 ký tự và tối đa 30 ký tự."
-      );
+    } else if (!newPassword || !newConfirmPassword) {
+      Alert.alert("Lỗi", "Vui lòng điền đầy đủ để cập nhật mật khẩu.");
       return;
-    } else if (newfullname.trim().length === 0) {
-      Alert.alert("Lỗi", "Vui lòng nhập tên đầy đủ");
-      return;
-    } else if (!/^[a-zA-Z0-9\s]+$/.test(newfullname)) {
-      Alert.alert("Lỗi", "Tên của bạn không được chứa ký tự đặc biệt.");
-      return;
-    } else if (/\d/.test(newfullname)) {
-      Alert.alert(
-        "Lỗi",
-        "Bạn hãy nhập tên hợp lệ( Không được có số và ký tự đặc biệt)."
-      );
-      return;
-    } else if (!/^[\w\s/]*$/.test(newAddress)) {
-      Alert.alert(
-        "Lỗi",
-        "Địa chỉ của bạn không hợp lệ. Vui lòng chỉ nhập số, chữ cái hoặc dấu '/'"
-      );
+    } else if (newPassword != newConfirmPassword) {
+      Alert.alert("Lỗi", "Vui lòng điền mật khẩu trùng khớp.");
       return;
     }
 
     const hasChangedInfo =
-      newfullname !== userProfile.name || newAddress !== userProfile.address;
+      newPassword !== userProfile.password ||
+      newConfirmPassword !== userProfile.confirmpassword;
 
     if (hasChangedInfo) {
       setShowPasswordConfirmation(true);
@@ -124,18 +100,10 @@ const EditProfile = () => {
       performUpdate();
     }
   };
-
-  const performUpdate = async () => {
+  const LockAcc = () => {
     const updatedUserData = {
-      name: newfullname,
-      address: newAddress,
+      status: "xoa",
     };
-
-    try {
-      await storeData("address", newAddress);
-    } catch (error) {
-      console.error("Error saving address to AsyncStorage:", error);
-    }
 
     fetch(`https://api.backendless.com/${apiApp}/${apiKey}/data/Users/${id}`, {
       method: "PUT",
@@ -147,13 +115,51 @@ const EditProfile = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        Alert.alert("Cập nhật thông tin thành công!");
-
-        navigate.navigate("Profile");
+        Alert.alert("Thông Báo", "Tài khoảng của bạn sẽ bị khoá sau 10 ngày");
+        navigate.navigate("Lockacc");
       })
       .catch((error) => {
         console.error("Lỗi:", error);
-        Alert.alert("Đã xảy ra lỗi khi cập nhật thông tin");
+        Alert.alert("Đã xảy ra lỗi khi xoá tài khoản");
+      });
+  };
+
+  const handleLockAccount = () => {
+    if (lockConfirmationPassword === userProfile.confirmpassword) {
+      LockAcc();
+      setShowLockConfirmation(false);
+    } else {
+      Alert.alert("Mật khẩu xác nhận không chính xác!");
+    }
+  };
+
+  const performUpdate = () => {
+    const updatedUserData = {
+      password: newPassword,
+      confirmpassword: newConfirmPassword,
+    };
+
+    fetch(`https://api.backendless.com/${apiApp}/${apiKey}/data/Users/${id}`, {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedUserData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Alert.alert("Đổi mật khẩu thành công!");
+        navigate.navigate("Profile", {
+          updatedData: {
+            password: newPassword,
+            confirmpassword: newConfirmPassword,
+          },
+        });
+      })
+      .catch((error) => {
+        console.error("Lỗi:", error);
+        Alert.alert("Đã xảy ra lỗi khi cập nhật mật khẩu");
       });
   };
 
@@ -165,21 +171,6 @@ const EditProfile = () => {
       Alert.alert("Mật khẩu xác nhận không chính xác!");
     }
   };
-
-  if (Loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size={"large"} color="black"></ActivityIndicator>
-      </View>
-    );
-  }
-  if (error) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text> Lỗi Tải Dữ Liệu, Hãy Kiểm Tra Lại Đuờng Truyền</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -193,45 +184,56 @@ const EditProfile = () => {
               style={styles.backHeader}
             />
           </TouchableOpacity>
-          <Text style={styles.textHeader}> Edit Profile</Text>
+          <Text style={styles.textHeader}> Setting</Text>
         </View>
-        {userProfile ? (
-          <View style={styles.headerTitles}>
-            <Text style={styles.headerText}> ✌️ Hello {userProfile.name} </Text>
-          </View>
-        ) : (
-          <Text>Loading...</Text>
-        )}
       </View>
       <View style={styles.body}>
-        <View style={styles.bodyItem}>
-          <View style={styles.bodyText}>
-            <Text style={styles.bodyTextTitle}> Full Name</Text>
-            <TextInput
-              placeholder="Full Name"
-              style={styles.bodyTextInput}
-              value={newfullname}
-              onChangeText={setNewfullname}
-            />
+        <View style={styles.bodyItems}>
+          <View style={styles.borderText}>
+            <Text style={styles.bodyTextTitlephone}> Change Password</Text>
+            <TouchableOpacity onPress={() => setshowpassword(!showpassword)}>
+              <AntDesign
+                name={showpassword ? "up" : "down"}
+                size={24}
+                color="black"
+              />
+            </TouchableOpacity>
           </View>
         </View>
-        <View style={styles.bodyItem}>
-          <View style={styles.bodyText}>
-            <Text style={styles.bodyTextTitle}> Address</Text>
-            <TextInput
-              placeholder="Address"
-              style={styles.bodyTextInput}
-              value={newAddress}
-              onChangeText={setNewAddress}
-            />
+        {showpassword && (
+          <View style={styles.changePasss}>
+            <View style={styles.bodyText}>
+              <Text style={styles.bodyTextTitle}> Password New</Text>
+              <TextInput
+                placeholder="Password New"
+                onChangeText={setNewPassword}
+                style={styles.bodyTextInput}
+              />
+            </View>
+            <View style={styles.bodyText}>
+              <Text style={styles.bodyTextTitle}> Confrim New Password</Text>
+              <TextInput
+                placeholder=" Confirm New Password"
+                onChangeText={setConfrimPassWord}
+                style={styles.bodyTextInput}
+              />
+            </View>
+            <TouchableOpacity onPress={handleUpdate}>
+              <View style={styles.bodyButton}>
+                <Text style={styles.bodyTextButton}> Update</Text>
+              </View>
+            </TouchableOpacity>
           </View>
-        </View>
-        <TouchableOpacity onPress={handleUpdate}>
-          <View style={styles.bodyButton}>
-            <Text style={styles.bodyTextButton}> Update</Text>
-          </View>
-        </TouchableOpacity>
+        )}
+        <View style={styles.bodyItems}>
+          <TouchableOpacity onPress={() => setShowLockConfirmation(true)}>
+            <View style={styles.borderText}>
+              <Text style={styles.bodyTextDelete}> Delete Accout</Text>
 
+              <AntDesign name="right" size={24} color="red" />
+            </View>
+          </TouchableOpacity>
+        </View>
         {showPasswordConfirmation && (
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -262,11 +264,41 @@ const EditProfile = () => {
           </View>
         )}
       </View>
+      {showLockConfirmation && (
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>
+              Bạn có chắc muốn xoá tài khoảng này?
+            </Text>
+            <TextInput
+              secureTextEntry
+              style={styles.modalInput}
+              onChangeText={setLockConfirmationPassword}
+              value={lockConfirmationPassword}
+              placeholder="Mật Khẩu"
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => setShowLockConfirmation(false)}
+              >
+                <Text style={styles.modalButtonText}>Huỷ</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={handleLockAccount}
+              >
+                <Text style={styles.modalButtonText}>Xoá</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
 
-export default EditProfile;
+export default Setting;
 
 const styles = StyleSheet.create({
   container: {
@@ -299,13 +331,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
+  changePasss: {
+    borderWidth: 1,
+    backgroundColor: "white",
+    margin: 20,
+    height: 250,
+    borderRadius: 5,
+  },
   borderText: {
     height: 40,
     marginLeft: 15,
     marginRight: 15,
     backgroundColor: "white",
     justifyContent: "center",
-    borderRadius: 20,
+    borderRadius: 3,
     borderWidth: 2,
     borderColor: "gray",
     marginTop: 10,
@@ -318,6 +357,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     marginLeft: 5,
+  },
+  bodyTextDelete: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginLeft: 5,
+    color: "red",
   },
   headerTitles: {
     height: (height * 10) / 100,
@@ -334,14 +379,9 @@ const styles = StyleSheet.create({
     width: width,
     height: (height * 60) / 100,
   },
-  bodyItem: {
+  bodyText: {
     width: width,
     height: (height * 9) / 100,
-    marginTop: 10,
-  },
-  bodyItems: {
-    width: width,
-    height: (height * 7) / 100,
     marginTop: 10,
   },
   bodyTextTitle: {
@@ -353,11 +393,12 @@ const styles = StyleSheet.create({
   },
   bodyTextInput: {
     height: 40,
+    width: 320,
     marginLeft: 15,
     marginRight: 15,
     backgroundColor: "white",
     padding: 10,
-    borderRadius: 20,
+    borderRadius: 5,
     borderColor: "black",
     borderWidth: 1,
   },
@@ -370,7 +411,7 @@ const styles = StyleSheet.create({
     borderColor: "#CCD2E8",
     width: 170,
     height: 35,
-    borderRadius: 20,
+    borderRadius: 10,
     backgroundColor: "black",
   },
   bodyTextButton: {
@@ -378,6 +419,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
   },
+
   modalContainer: {
     width: (width * 90) / 100,
     height: (height * 30) / 100,

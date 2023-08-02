@@ -6,18 +6,22 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { AntDesign, FontAwesome, Feather } from "@expo/vector-icons";
 import BottomTab from "../navigations/BottomTab";
 import { useNavigation } from "@react-navigation/native";
 import { getData } from "../../features/MyA";
 import { apiApp, apiKey } from "../../features/ApiKey";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("screen");
 
 const Profile = () => {
   const navigate = useNavigation();
   const [userData, setUserData] = useState(null);
+  const [Loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const inUserID = async () => {
     try {
@@ -29,7 +33,21 @@ const Profile = () => {
     }
   };
 
+  const clearShoppingBagItems = async () => {
+    try {
+      await AsyncStorage.removeItem("shoppingBagItems");
+    } catch (error) {
+      console.error("Error clearing shopping bag items:", error);
+    }
+  };
+
+  const handleSignOut = () => {
+    clearShoppingBagItems();
+    navigate.navigate("Begin");
+  };
+
   useEffect(() => {
+    setLoading(true);
     inUserID()
       .then((id) => {
         fetch(
@@ -46,6 +64,7 @@ const Profile = () => {
           .then((data) => {
             console.log(data);
             setUserData(data);
+            setLoading(false);
           })
           .catch((error) => {
             console.error("Error:", error);
@@ -53,6 +72,21 @@ const Profile = () => {
       })
       .catch((error) => {});
   }, []);
+
+  if (Loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size={"large"} color="black"></ActivityIndicator>
+      </View>
+    );
+  }
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text> Lỗi Tải Dữ Liệu, Hãy Kiểm Tra Lại Đuờng Truyền</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -97,7 +131,10 @@ const Profile = () => {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigate.navigate("History")}
+        >
           <View style={styles.bodyItem}>
             <FontAwesome
               name="history"
@@ -115,7 +152,10 @@ const Profile = () => {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigate.navigate("Setting")}
+        >
           <View style={styles.bodyItem}>
             <Feather
               name="settings"
@@ -133,10 +173,7 @@ const Profile = () => {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => navigate.navigate("Begin")}
-          style={styles.button}
-        >
+        <TouchableOpacity onPress={handleSignOut} style={styles.button}>
           <View style={styles.bodyItem}>
             <AntDesign
               name="logout"
@@ -169,7 +206,7 @@ const styles = StyleSheet.create({
   header: {
     width: width,
     height: (height * 40) / 100,
-    backgroundColor: "grey",
+    backgroundColor: "black",
     marginBottom: 50,
   },
   headerTitle: {

@@ -5,27 +5,33 @@ import {
   View,
   Image,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { FlatList } from "react-native-gesture-handler";
 import BottomTab from "../navigations/BottomTab";
-import { getData, storeData } from "../../features/MyA";
+import { getData, storeData, removeData } from "../../features/MyA";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const navigation = useNavigation();
   const isFocused = useIsFocused();
+  const [Loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    getCartItems();
-  }, []);
+  // useEffect(() => {
+  //   getCartItems();
+  //   setLoading(true);
+  // }, []);
 
   useEffect(() => {
     if (isFocused) {
       refreshCartItems();
     }
+    setLoading(true);
   }, [isFocused]);
 
   const refreshCartItems = async () => {
@@ -35,6 +41,7 @@ const Cart = () => {
         const cartItemsArray = JSON.parse(cartItemsJSON);
         setCartItems(cartItemsArray);
       }
+      setLoading(false);
     } catch (error) {
       console.error("Error retrieving cart items from AsyncStorage:", error);
     }
@@ -44,22 +51,24 @@ const Cart = () => {
     try {
       const cartItemsJSON = JSON.stringify(cartItems);
       await storeData("shoppingBagItems", cartItemsJSON);
+      setLoading(false);
     } catch (error) {
       console.error("Error updating cart items in AsyncStorage:", error);
     }
   };
 
-  const getCartItems = async () => {
-    try {
-      const cartItemsJSON = await getData("shoppingBagItems");
-      if (cartItemsJSON) {
-        const cartItemsArray = JSON.parse(cartItemsJSON);
-        setCartItems(cartItemsArray);
-      }
-    } catch (error) {
-      console.error("Error retrieving cart items from AsyncStorage:", error);
-    }
-  };
+  // const getCartItems = async () => {
+  //   try {
+  //     const cartItemsJSON = await getData("shoppingBagItems");
+  //     if (cartItemsJSON) {
+  //       const cartItemsArray = JSON.parse(cartItemsJSON);
+  //       setCartItems(cartItemsArray);
+  //       setLoading(false);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error retrieving cart items from AsyncStorage:", error);
+  //   }
+  // };
 
   const renderCartItem = ({ item, index }) => {
     const navigateToDetails = async () => {
@@ -87,10 +96,21 @@ const Cart = () => {
     };
 
     const removeItem = () => {
-      const updatedCartItems = [...cartItems];
-      updatedCartItems.splice(index, 1);
-      setCartItems(updatedCartItems);
-      updateCartItemsInAsyncStorage(updatedCartItems);
+      Alert.alert("Xác nhận xoá", "Bạn có chắc chắn muốn xoá sản phẩm này?", [
+        {
+          text: "Hủy",
+          style: "cancel",
+        },
+        {
+          text: "Xoá",
+          onPress: () => {
+            const updatedCartItems = [...cartItems];
+            updatedCartItems.splice(index, 1);
+            setCartItems(updatedCartItems);
+            updateCartItemsInAsyncStorage(updatedCartItems);
+          },
+        },
+      ]);
     };
 
     return (
@@ -161,25 +181,58 @@ const Cart = () => {
   };
 
   const removeAllItems = () => {
-    setCartItems([]);
-    updateCartItemsInAsyncStorage([]);
+    if (cartItems.length === 0) {
+      Alert.alert("Thông báo", "Chưa có sản phẩm trong giỏ hàng.");
+    } else {
+      Alert.alert(
+        "Xác nhận xoá",
+        "Bạn có chắc chắn muốn xoá tất cả sản phẩm trong giỏ hàng?",
+        [
+          {
+            text: "Hủy",
+            style: "cancel",
+          },
+          {
+            text: "Xoá",
+            onPress: () => {
+              setCartItems([]);
+              updateCartItemsInAsyncStorage([]);
+            },
+          },
+        ]
+      );
+    }
   };
 
-  // useEffect(() => {
-  //   const fetchCartItems = async () => {
-  //     try {
-  //       const cartItemsString = await AsyncStorage.getItem("cartItems");
-  //       if (cartItemsString) {
-  //         const cartItems = JSON.parse(cartItemsString);
-  //         setItems(cartItems);
-  //       }
-  //     } catch (error) {
-  //       console.log("Error fetching cart items: ", error);
-  //     }
-  //   };
+  const handleCheckOut = async () => {
+    if (cartItems.length === 0) {
+      Alert.alert("Thông báo", "Chưa có sản phẩm trong giỏ hàng.");
+      return;
+    }
 
-  //   fetchCartItems();
-  // }, []);
+    try {
+      await storeData("checkoutItems", JSON.stringify(cartItems));
+
+      navigation.navigate("CheckOut");
+    } catch (error) {
+      console.error("Error storing cart items in AsyncStorage:", error);
+    }
+  };
+
+  if (Loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size={"large"} color="black"></ActivityIndicator>
+      </View>
+    );
+  }
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text> Lỗi Tải Dữ Liệu, Hãy Kiểm Tra Lại Đuờng Truyền</Text>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -213,7 +266,14 @@ const Cart = () => {
             <Text style={styles.totalText}>Total</Text>
             <Text style={styles.totalNum}>${TotalPrice()}</Text>
           </View>
-          <TouchableOpacity style={styles.button}>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              cartItems.length === 0 && styles.disabledButton,
+            ]}
+            onPress={handleCheckOut}
+          >
             <Text style={styles.buttonText}>Checkout</Text>
           </TouchableOpacity>
         </View>
@@ -226,12 +286,15 @@ const Cart = () => {
 export default Cart;
 
 const styles = StyleSheet.create({
+  disabledButton: {
+    backgroundColor: "gray",
+  },
   container: {
     flex: 1,
     backgroundColor: "black",
   },
   title: {
-    paddingTop: 50,
+    paddingTop: 20,
     padding: 20,
     justifyContent: "center",
     alignItems: "center",

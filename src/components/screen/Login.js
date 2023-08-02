@@ -16,6 +16,7 @@ import { apiKey, apiApp } from "../../features/ApiKey";
 import { useNavigation } from "@react-navigation/core";
 import { storeData } from "../../features/MyA";
 const { width, height } = Dimensions.get("screen");
+
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -27,7 +28,7 @@ const Login = () => {
   };
   const handleLogin = () => {
     if (!username.trim() || !password.trim()) {
-      Alert.alert("Lỗi", "Bạn hãy điền đầy đủ thông tin!");
+      Alert.alert("Lỗi", "Bạn hãy điền đầy đủ thông tin để có thể mua hàng!");
       return;
     } else if (username.includes(" ") || password.includes(" ")) {
       Alert.alert("Lỗi", "Vui lòng không nhập space");
@@ -60,6 +61,13 @@ const Login = () => {
           })
             .then((response) => response.json())
             .then((data) => {
+              const user = data;
+              if (user.status && user.status === "xoa") {
+                console.log("Tài khoản đã bị xoá");
+                Alert.alert("Lỗi", "Tài khoản của bạn đang bị khoá tạm thời.");
+                navigate.navigate("Lockacc");
+                return;
+              }
               if (data.objectId) {
                 console.log("objectId:", data.objectId);
                 storeData("idUser", data.objectId);
