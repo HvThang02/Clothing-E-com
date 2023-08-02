@@ -132,7 +132,6 @@ const CheckOut = () => {
       }
 
       console.log("Checkout successful!");
-      await removeData("shoppingBagItems");
       Alert.alert("Thanh toán thành công", "Bạn đã thanh toán thành công", [
         {
           text: "Đồng ý",
@@ -142,6 +141,7 @@ const CheckOut = () => {
           },
         },
       ]);
+      await removeData("shoppingBagItems");
     } catch (error) {
       console.error("Error during checkout:", error);
     }
