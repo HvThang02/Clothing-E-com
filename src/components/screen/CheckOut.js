@@ -177,10 +177,9 @@ const CheckOut = () => {
     return (
       <View
         style={{
-          flex: 1,
+          position: "absolute",
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "black",
         }}
       >
         <ActivityIndicator size={"large"} color="white"></ActivityIndicator>
@@ -189,7 +188,13 @@ const CheckOut = () => {
   }
   if (error) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View
+        style={{
+          position: "absolute",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <Text> Lỗi Tải Dữ Liệu, Hãy Kiểm Tra Lại Đuờng Truyền</Text>
       </View>
     );

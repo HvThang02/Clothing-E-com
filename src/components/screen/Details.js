@@ -4,6 +4,7 @@ import { MaterialIcons, Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { getData, storeData } from "../../features/MyA";
 
+import { useBackHandler } from "./useBackHandler";
 const Details = () => {
   const [isFavourite, setIsFavourite] = useState(false);
   const [selectedSize, setSelectedSize] = useState("S");
@@ -11,6 +12,12 @@ const Details = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const navigate = useNavigation();
 
+  const handleBack = () => {
+    navigate.navigate("Home");
+    return true;
+  };
+
+  useBackHandler(handleBack);
   useEffect(() => {
     getSelectedItem();
   }, []);

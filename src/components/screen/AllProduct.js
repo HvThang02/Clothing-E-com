@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ProductListCss } from "./ProductListCss";
 import { getData } from "../../features/MyA";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useBackHandler } from "./useBackHandler";
 
 const AllProduct = () => {
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -23,6 +24,13 @@ const AllProduct = () => {
   const [error, setError] = useState("");
 
   const navigation = useNavigation();
+
+  const handleBack = () => {
+    navigation.navigate("Home");
+    return true;
+  };
+
+  useBackHandler(handleBack);
 
   const fetchAllItems = async () => {
     const data = await getData("dataItems");
