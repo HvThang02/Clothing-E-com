@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ProductListCss } from "./ProductListCss";
 import { getData } from "../../features/MyA";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useBackHandler } from "./useBackHandler";
 
 const AllProduct = () => {
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -23,6 +24,13 @@ const AllProduct = () => {
   const [error, setError] = useState("");
 
   const navigation = useNavigation();
+
+  const handleBack = () => {
+    navigation.navigate("Home");
+    return true;
+  };
+
+  useBackHandler(handleBack);
 
   const fetchAllItems = async () => {
     const data = await getData("dataItems");
@@ -104,20 +112,20 @@ const AllProduct = () => {
     return null;
   };
 
-  if (Loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size={"large"} color="black"></ActivityIndicator>
-      </View>
-    );
-  }
-  if (error) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text> Lỗi Tải Dữ Liệu, Hãy Kiểm Tra Lại Đuờng Truyền</Text>
-      </View>
-    );
-  }
+  // if (Loading) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <ActivityIndicator size={"large"} color="black"></ActivityIndicator>
+  //     </View>
+  //   );
+  // }
+  // if (error) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <Text> Lỗi Tải Dữ Liệu, Hãy Kiểm Tra Lại Đuờng Truyền</Text>
+  //     </View>
+  //   );
+  // }
 
   return (
     <>

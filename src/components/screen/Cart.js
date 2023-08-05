@@ -123,7 +123,9 @@ const Cart = () => {
         </TouchableWithoutFeedback>
         <View style={styles.detailProduct}>
           <TouchableOpacity onPress={navigateToDetails}>
-            <Text style={styles.nameProduct}>{item.item.TenSanPham}</Text>
+            <Text style={styles.nameProduct} numberOfLines={1}>
+              {item.item.TenSanPham}
+            </Text>
           </TouchableOpacity>
           <View style={styles.priceSize}>
             <Text style={{ fontWeight: "600", fontSize: 20 }}>
@@ -221,8 +223,15 @@ const Cart = () => {
 
   if (Loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size={"large"} color="black"></ActivityIndicator>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "black",
+        }}
+      >
+        <ActivityIndicator size={"large"} color="white"></ActivityIndicator>
       </View>
     );
   }
@@ -375,7 +384,6 @@ const styles = StyleSheet.create({
   remove: {},
   productImage: {
     width: 90,
-
     borderRadius: 8,
   },
   buttonQuantity: {

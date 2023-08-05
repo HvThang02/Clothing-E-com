@@ -8,6 +8,7 @@ import {
   Dimensions,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { getData, removeData, storeData } from "../../features/MyA";
@@ -25,6 +26,7 @@ const CheckOut = () => {
   const [totalPrice, setTotalPrice] = useState(0);
   const navigation = useNavigation();
   const [Loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const isFocused = useIsFocused();
 
@@ -78,7 +80,23 @@ const CheckOut = () => {
       const userObjectID = await getData("idUser");
       const paymentMethod = isCast ? "cash" : "card";
       const address = text;
-
+      if (!text.length > 50) {
+        Alert.alert("Lỗi", "Địa chỉ của bạn chỉ được tối đa 50 ký tự.");
+        return;
+      } else if (!text.trim().length === 0) {
+        Alert.alert("Lỗi", "Vui lòng nhập địa chỉ đầy đủ");
+        return;
+      } else if (!text) {
+        Alert.alert("Lỗi", "Vui lòng không để trống địa chỉ");
+        return;
+      } else if (!/^[\w\s/]*$/.test(text)) {
+        Alert.alert(
+          "Lỗi",
+          "Địa chỉ của bạn không hợp lệ. Vui lòng chỉ nhập số, chữ cái hoặc dấu '/'"
+        );
+        return;
+      }
+      setLoading(true);
       for (const item of cartItems) {
         const checkoutData = {
           idUser: userObjectID,
@@ -108,6 +126,7 @@ const CheckOut = () => {
             response.status,
             response.statusText
           );
+          setLoading(false);
           return;
         }
       }
@@ -132,7 +151,9 @@ const CheckOut = () => {
     <View style={styles.product}>
       <Image source={{ uri: item.item.Image }} style={styles.productImage} />
       <View style={styles.detailProduct}>
-        <Text style={styles.nameProduct}>{item.item.TenSanPham}</Text>
+        <Text style={styles.nameProduct} numberOfLines={1}>
+          {item.item.TenSanPham}
+        </Text>
         <Text style={styles.priceProduct}>${item.item.GiaTien}</Text>
         <Text style={styles.sizeProduct}>Size: {item.size}</Text>
         <Text style={styles.quantityProduct}>Quantity: {item.quantity}</Text>
@@ -151,6 +172,33 @@ const CheckOut = () => {
   useEffect(() => {
     retrieveAddress();
   }, []);
+
+  if (Loading) {
+    return (
+      <View
+        style={{
+          position: "absolute",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size={"large"} color="white"></ActivityIndicator>
+      </View>
+    );
+  }
+  if (error) {
+    return (
+      <View
+        style={{
+          position: "absolute",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text> Lỗi Tải Dữ Liệu, Hãy Kiểm Tra Lại Đuờng Truyền</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -276,6 +324,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   nameProduct: {
+    width: 200,
     color: "white",
   },
   priceProduct: {

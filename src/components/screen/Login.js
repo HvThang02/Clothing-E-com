@@ -114,6 +114,7 @@ const Login = () => {
           <TextInput
             style={styles.textinput}
             placeholder=" Enter your phone number"
+            keyboardType="phone-pad"
             value={username}
             onChangeText={(text) => setUsername(text)}
           />
@@ -150,11 +151,15 @@ const Login = () => {
             )}
           </TouchableOpacity>
         </View>
-        <View style={styles.bodyForgot}>
-          <TouchableOpacity>
+        {/* <View style={styles.bodyForgot}>
+          <TouchableOpacity
+          // onPress={() => {
+          //   navigate.navigate("Forgot");
+          // }}
+          >
             <Text style={styles.bodyTextFor}> Forgot Password?</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
         <TouchableOpacity onPress={handleLogin}>
           <View style={styles.bodyButton}>
             <Text style={styles.bodyLogin}> Login</Text>

@@ -18,7 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Dimensions } from "react-native";
 import { apiUrl } from "../../features/apiURL";
 import { storeData } from "../../features/MyA";
-
+import { useBackHandler } from "./useBackHandler";
 const Home = () => {
   const { width } = Dimensions.get("window");
   const navigation = useNavigation();
@@ -27,6 +27,12 @@ const Home = () => {
   const [men, setMen] = useState([]);
   const [Loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleBack = () => {
+    return false;
+  };
+
+  useBackHandler(handleBack);
 
   const getDataAPI = () => {
     fetch(apiUrl)
@@ -117,7 +123,7 @@ const Home = () => {
   const saleList = [
     {
       id: "1",
-      sale: "https://images.squarespace-cdn.com/content/v1/55e467b1e4b0a2a709a23aa9/e9274d45-d26c-4d87-b75b-6f15d5654a4d/NikeUltimateSale",
+      sale: "https://static.nike.com/a/images/f_auto/dpr_1.1,cs_srgb/h_816,c_limit/d876c9dc-49ec-4a81-a0e9-27b396093584/image.png",
     },
     {
       id: "2",
@@ -135,8 +141,15 @@ const Home = () => {
 
   if (Loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size={"large"} color="black"></ActivityIndicator>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "black",
+        }}
+      >
+        <ActivityIndicator size={"large"} color="white"></ActivityIndicator>
       </View>
     );
   }
