@@ -1,4 +1,11 @@
-import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import React, { useState, useEffect } from "react";
 import { MaterialIcons, Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -76,6 +83,7 @@ const Details = () => {
       }
 
       await storeData("shoppingBagItems", JSON.stringify(bagItems));
+      Alert.alert("Thông báo", "Thêm vào giỏ hàng thành công");
       // console.log("Item added to shopping bag!");
     } catch (error) {
       console.error("Error adding item to shopping bag:", error);

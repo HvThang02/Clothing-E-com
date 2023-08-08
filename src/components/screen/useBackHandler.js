@@ -5,7 +5,7 @@ export const useBackHandler = (handleBack) => {
   useEffect(() => {
     const onBackPress = () => {
       handleBack();
-      return true; // Prevent default back button behavior
+      return true;
     };
 
     BackHandler.addEventListener("hardwareBackPress", onBackPress);
